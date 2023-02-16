@@ -1,11 +1,19 @@
 package jp.co.axa.apidemo.controllers;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import jp.co.axa.apidemo.entities.Employee;
 import jp.co.axa.apidemo.services.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -18,35 +26,95 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    /*
+        Get all employees
+     */
+    @ApiOperation(value = "Get all employees")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found") })
     @GetMapping("/employees")
-    public List<Employee> getEmployees() {
+    public ResponseEntity<List<Employee>> getEmployees() {
         List<Employee> employees = employeeService.retrieveEmployees();
-        return employees;
+        return ResponseEntity.ok(employees);
     }
 
+    /*
+        Get Employee by employeeId if exist
+     */
+    @ApiOperation(value = "Get employee by employeeId")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found") })
     @GetMapping("/employees/{employeeId}")
-    public Employee getEmployee(@PathVariable(name="employeeId")Long employeeId) {
-        return employeeService.getEmployee(employeeId);
+    public ResponseEntity<Employee> getEmployee(@PathVariable(name="employeeId")Long employeeId) {
+        Employee foundEmployee = employeeService.getEmployee(employeeId);
+        if (foundEmployee != null) {
+            return ResponseEntity.ok(foundEmployee);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
+    /*
+        Create employee
+     */
+    @ApiOperation(value = "Create employee")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created"),
+            @ApiResponse(code = 400, message = "Error"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found") })
     @PostMapping("/employees")
-    public void saveEmployee(Employee employee){
+    public ResponseEntity<Employee> saveEmployee(@RequestBody @Valid Employee employee){
         employeeService.saveEmployee(employee);
         System.out.println("Employee Saved Successfully");
+        return new ResponseEntity<>(employee, HttpStatus.CREATED);
     }
 
+    /*
+        Delete employee by employeeId if exist
+     */
+    @ApiOperation(value = "Delete employee by employeeId")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 204, message = "No Content"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden") })
     @DeleteMapping("/employees/{employeeId}")
-    public void deleteEmployee(@PathVariable(name="employeeId")Long employeeId){
-        employeeService.deleteEmployee(employeeId);
-        System.out.println("Employee Deleted Successfully");
+    public ResponseEntity<Object> deleteEmployee(@PathVariable(name="employeeId")Long employeeId){
+        if (employeeService.getEmployee((employeeId)) != null) {
+            employeeService.deleteEmployee(employeeId);
+            System.out.printf("Employee with Id %s Deleted Successfully%n", employeeId.toString());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return ResponseEntity.noContent().build();
+        }
     }
 
+    /*
+        Update employee by employeeId if exist
+     */
+    @ApiOperation(value = "Update employee by employeeId")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found") })
     @PutMapping("/employees/{employeeId}")
-    public void updateEmployee(@RequestBody Employee employee,
+    public ResponseEntity<Employee> updateEmployee(@RequestBody Employee employee,
                                @PathVariable(name="employeeId")Long employeeId){
-        Employee emp = employeeService.getEmployee(employeeId);
-        if(emp != null){
-            employeeService.updateEmployee(employee);
+        Employee foundEmployee = employeeService.getEmployee(employeeId);
+        if(foundEmployee != null){
+            employeeService.updateEmployee(foundEmployee, employee);
+            return ResponseEntity.ok(foundEmployee);
+        } else {
+            return ResponseEntity.notFound().build();
         }
 
     }
