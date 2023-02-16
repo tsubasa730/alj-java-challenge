@@ -1,7 +1,9 @@
 package jp.co.axa.apidemo.entities;
 
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -15,6 +17,8 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name="EMPLOYEE")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Employee {
 
     @ApiModelProperty(notes = "id", example = "1", required = true)

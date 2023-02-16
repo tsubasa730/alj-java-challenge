@@ -23,12 +23,12 @@ public class EmployeeServiceImpl implements EmployeeService{
         return employees;
     }
 
-    public Employee getEmployee(Long employeeId) {
+    public Employee getEmployeeById(Long employeeId) {
         Optional<Employee> optEmp = employeeRepository.findById(employeeId);
         return optEmp.orElse(null);
     }
 
-    public void saveEmployee(Employee employee){
+    public void createEmployee(Employee employee){
         employeeRepository.save(employee);
     }
 
@@ -36,14 +36,18 @@ public class EmployeeServiceImpl implements EmployeeService{
         employeeRepository.deleteById(employeeId);
     }
 
-    public void updateEmployee(Employee foundEmployee, Employee employee) {
-        updateEmployeeData(foundEmployee, employee);
-        employeeRepository.save(foundEmployee);
+    public Employee updateEmployee(Employee orgEmployee, Employee updateEmployee) {
+        updateEmployeeData(orgEmployee, updateEmployee);
+        employeeRepository.save(orgEmployee);
+        return orgEmployee;
     }
 
-    public void updateEmployeeData(Employee foundEmployee, Employee employee) {
-        foundEmployee.setName(employee.getName());
-        foundEmployee.setSalary(employee.getSalary());
-        foundEmployee.setDepartment(employee.getDepartment());
+    /*
+
+     */
+    private void updateEmployeeData(Employee orgEmployee, Employee updateEmployee) {
+        orgEmployee.setName(updateEmployee.getName());
+        orgEmployee.setSalary(updateEmployee.getSalary());
+        orgEmployee.setDepartment(updateEmployee.getDepartment());
     }
 }
