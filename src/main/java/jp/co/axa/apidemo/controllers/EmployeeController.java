@@ -8,11 +8,11 @@ import jp.co.axa.apidemo.services.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,6 +35,7 @@ public class EmployeeController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 404, message = "Not Found") })
     @GetMapping("/employees")
+    @PreAuthorize("hasAuthority('READ')")
     public ResponseEntity<List<Employee>> getAllEmployees() {
         List<Employee> employees = employeeService.retrieveEmployees();
         return ResponseEntity.ok(employees);
@@ -49,7 +50,8 @@ public class EmployeeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 404, message = "Not Found") })
-    @GetMapping("/employees/{employeeId}")
+    @GetMapping("/employee/{employeeId}")
+    @PreAuthorize("hasAuthority('READ')")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable(name="employeeId")Long employeeId) {
         Employee foundEmployee = employeeService.getEmployeeById(employeeId);
         if (foundEmployee != null) {
@@ -69,7 +71,8 @@ public class EmployeeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 404, message = "Not Found") })
-    @PostMapping("/employees")
+    @PreAuthorize("hasAuthority('CREATE')")
+    @PostMapping("/create-employee")
     public ResponseEntity<Employee> saveEmployee(@RequestBody @Valid Employee employee){
         employeeService.createEmployee(employee);
         System.out.println("Employee Saved Successfully");
@@ -85,7 +88,8 @@ public class EmployeeController {
             @ApiResponse(code = 204, message = "No Content"),
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden") })
-    @DeleteMapping("/employees/{employeeId}")
+    @PreAuthorize("hasAuthority('DELETE')")
+    @DeleteMapping("/delete-employee/{employeeId}")
     public ResponseEntity<Object> deleteEmployeeById(@PathVariable(name="employeeId")Long employeeId){
         if (employeeService.getEmployeeById((employeeId)) != null) {
             employeeService.deleteEmployee(employeeId);
@@ -97,22 +101,22 @@ public class EmployeeController {
     }
 
     /*
-        Update employee by employeeId if exist
+        Update tempEmployee by employeeId if exist
      */
-    @ApiOperation(value = "Update employee by employeeId")
+    @ApiOperation(value = "Update tempEmployee by employeeId")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 404, message = "Not Found") })
-    @PutMapping("/employees/{employeeId}")
-    public ResponseEntity<Employee> updateEmployeeById(@RequestBody Employee employee,
+    @PreAuthorize("hasAuthority('UPDATE')")
+    @PutMapping("/update-employee/{employeeId}")
+    public ResponseEntity<Employee> updateEmployeeById(@RequestBody Employee tempEmployee,
                                                        @PathVariable(name="employeeId")Long employeeId){
         Employee foundEmployee = employeeService.getEmployeeById(employeeId);
         if(foundEmployee != null){
-            Employee updatedEmployee = employeeService.updateEmployee(foundEmployee, employee);
+            Employee updatedEmployee = employeeService.updateEmployee(foundEmployee, tempEmployee);
             return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
-//            return ResponseEntity.ok(updatedEmployee);
         } else {
             return ResponseEntity.ok(foundEmployee);
         }
